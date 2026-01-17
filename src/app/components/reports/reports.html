@@ -1,0 +1,152 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+    <h1 class="text-2xl font-bold">Raporty finansowe</h1>
+    <div class="flex gap-2">
+      <div class="relative">
+        <lucide-angular [img]="Calendar" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400"></lucide-angular>
+        <input
+          type="month"
+          value="2024-12"
+          class="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <button (click)="exportToPDF()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+        <lucide-angular [img]="Download" class="w-4 h-4"></lucide-angular>
+        Eksportuj PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <p class="text-sm text-slate-600">Przychody (6 mies.)</p>
+      <p class="mt-2 text-2xl font-semibold">{{ formatNumber(totalIncome) }} zł</p>
+      <p class="text-sm text-green-600 mt-1">+15,3% vs okres poprzedni</p>
+    </div>
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <p class="text-sm text-slate-600">Wydatki (6 mies.)</p>
+      <p class="mt-2 text-2xl font-semibold">{{ formatNumber(totalExpenses) }} zł</p>
+      <p class="text-sm text-red-600 mt-1">+8,7% vs okres poprzedni</p>
+    </div>
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <p class="text-sm text-slate-600">Zysk (6 mies.)</p>
+      <p class="mt-2 text-2xl font-semibold">{{ formatNumber(totalProfit) }} zł</p>
+      <p class="text-sm text-green-600 mt-1">+22,4% vs okres poprzedni</p>
+    </div>
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <p class="text-sm text-slate-600">Marża zysku</p>
+      <p class="mt-2 text-2xl font-semibold">{{ profitMargin }}%</p>
+      <p class="text-sm text-green-600 mt-1">+2,1 p.p. vs okres poprzedni</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <h2 class="text-lg font-semibold mb-4">Przychody vs Wydatki</h2>
+      <div class="flex items-end justify-around h-64 gap-4">
+        <div *ngFor="let data of monthlyData" class="flex flex-col items-center gap-2 flex-1">
+          <div class="flex flex-col items-center gap-1 w-full">
+            <div class="w-full flex gap-1 items-end h-48">
+              <div
+                class="bg-blue-500 rounded-t flex-1 cursor-pointer transition-opacity hover:opacity-80"
+                [style.height.%]="getBarHeight(data.income, maxMonthlyValue)"
+                (mouseenter)="showTooltip($event, 'Przychody: ' + formatNumber(data.income) + ' zł')"
+                (mouseleave)="hideTooltip()"
+              ></div>
+              <div
+                class="bg-red-500 rounded-t flex-1 cursor-pointer transition-opacity hover:opacity-80"
+                [style.height.%]="getBarHeight(data.expenses, maxMonthlyValue)"
+                (mouseenter)="showTooltip($event, 'Wydatki: ' + formatNumber(data.expenses) + ' zł')"
+                (mouseleave)="hideTooltip()"
+              ></div>
+            </div>
+          </div>
+          <span class="text-xs text-slate-600">{{ data.month }}</span>
+        </div>
+      </div>
+      <div class="flex justify-center gap-6 mt-4">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 bg-blue-500 rounded"></div>
+          <span class="text-sm">Przychody</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 bg-red-500 rounded"></div>
+          <span class="text-sm">Wydatki</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg border border-slate-200 p-6">
+      <h2 class="text-lg font-semibold mb-4">Przychody według kategorii</h2>
+      <div class="space-y-4 mt-8">
+        <div *ngFor="let item of categoryData">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <div
+                class="w-3 h-3 rounded"
+                [style.background-color]="item.color"
+              ></div>
+              <span class="text-sm">{{ item.name }}</span>
+            </div>
+            <span class="font-semibold">{{ item.value }}%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2">
+            <div
+              class="h-2 rounded-full"
+              [style.width.%]="item.value"
+              [style.background-color]="item.color"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg border border-slate-200 p-6">
+    <h2 class="text-lg font-semibold mb-4">Trend zysku netto</h2>
+    <div class="flex items-end justify-around h-64 gap-4">
+      <div *ngFor="let data of profitData; let i = index" class="flex flex-col items-center gap-2 flex-1">
+        <div class="w-full flex items-end justify-center h-48">
+          <div
+            class="bg-green-500 rounded-t w-3/4 cursor-pointer transition-opacity hover:opacity-80"
+            [style.height.%]="getBarHeight(data.profit, maxProfitValue)"
+            (mouseenter)="showTooltip($event, 'Zysk: ' + formatNumber(data.profit) + ' zł')"
+            (mouseleave)="hideTooltip()"
+          ></div>
+        </div>
+        <span class="text-xs text-slate-600">{{ data.month }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg border border-slate-200 p-6">
+    <h2 class="text-lg font-semibold mb-4">Podsumowanie podatkowe</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <p class="text-sm text-slate-600">VAT należny</p>
+        <p class="mt-2 text-2xl font-semibold">28 809 zł</p>
+        <p class="text-xs text-slate-500 mt-1">Za grudzień 2024</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-600">VAT naliczony</p>
+        <p class="mt-2 text-2xl font-semibold">11 292 zł</p>
+        <p class="text-xs text-slate-500 mt-1">Za grudzień 2024</p>
+      </div>
+      <div>
+        <p class="text-sm text-slate-600">VAT do zapłaty</p>
+        <p class="mt-2 text-2xl font-semibold text-blue-600">17 517 zł</p>
+        <p class="text-xs text-slate-500 mt-1">Termin: 25.12.2024</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="tooltipData()"
+       class="fixed pointer-events-none z-50 bg-slate-900 text-white px-3 py-2 rounded-lg text-sm shadow-lg"
+       [style.left.px]="tooltipData()!.x"
+       [style.top.px]="tooltipData()!.y"
+       style="transform: translate(-50%, -100%);">
+    {{ tooltipData()!.content }}
+  </div>
+</div>
+
+
