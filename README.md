@@ -1,3 +1,5 @@
+https://github.com/user-attachments/assets/52020264-be41-4318-a822-d928c0713035
+
 # Finly
 
 **Finly** is a modern and fully functional financial and accounting management system. Built with **Angular 21**, the application provides comprehensive control over a company's financial health by offering tools to monitor revenue, expenses, and client relationships.
